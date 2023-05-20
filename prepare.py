@@ -83,6 +83,8 @@ def lemmatize(string):
     
     return string
 
+ADDITIONAL_STOPWORDS = ['r', 'u', '2', 'ltgt']
+
 def remove_stopwords(string):
     '''
     This function takes in a block of text (string) and splits it into a list of individual words. It then checks to see if each word is in the stopwords list and rejoins all of the words that are not in the list.
@@ -91,13 +93,24 @@ def remove_stopwords(string):
     
     Returns: a lemmatized text string
     '''
-    stopwords = nltk.corpus.stopwords
-    string = ' '.join([word for word in string.split() if word not in stopwords.words('english')])
+    stopwords = nltk.corpus.stopwords.words('english') + ADDITIONAL_STOPWORDS
+    string = ' '.join([word for word in string.split() if word not in stopwords])
     
     return string
 
 
 def make_comparative_df(df):
+    '''
+    This function takes in a dataframe of text entries and returns a 
+    comparative dataframe with a column of the original entries and new
+    columns "clean", "stemmed", and "lemmatized" with the original texts
+    cleaned (see basic_clean() in this module, stemmed and lemmatized
+    
+    Arguments: a dataframe of texts
+    
+    Returns: a dataframe of the original texts and comparative columns
+            of the various steps of cleaning and prepping for NLP analysis
+    '''
     df.rename(columns={'content':'original'}, inplace=True)
     df['clean'] = df.original.apply(basic_clean).apply(tokenize).apply(
     remove_stopwords)
@@ -105,3 +118,33 @@ def make_comparative_df(df):
     df['lemmatized'] = df.clean.apply(lemmatize)
     
     return df
+
+def prep_spam(df):
+    '''
+    Takes in spam df and cleans, tokenizes, lemmatizes.
+    
+    Arguments: spam df
+    Returns: spam df with the text column
+    cleaned, tokenized, and lemmatized.
+    '''
+    df = df.drop(columns='id')
+    df.text = df.text.apply(basic_clean).apply(tokenize).apply(
+    remove_stopwords)
+    
+    return df
+
+
+
+
+def clean(text):
+    '''
+    A simple function to cleanup text data.
+    '''
+    wnl = nltk.stem.WordNetLemmatizer()
+    stopwords = nltk.corpus.stopwords.words('english') + ADDITIONAL_STOPWORDS
+    text = (unicodedata.normalize('NFKD', text)
+             .encode('ascii', 'ignore')
+             .decode('utf-8', 'ignore')
+             .lower())
+    words = re.sub(r'[^\w\s]', '', text).split()
+    return [wnl.lemmatize(word) for word in words if word not in stopwords]

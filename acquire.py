@@ -1,10 +1,73 @@
-from requests import get
-from bs4 import BeautifulSoup
-import os
+# 017 acquire.py
+# ============================================================
+   
+    # imports:
+    
+# general imports
+import numpy as np
 import pandas as pd
+import os
 import re
 
+# for webscraping
+from requests import get
+from bs4 import BeautifulSoup
+
+# local modules
+from env import user, host, password
+# ============================================================
+
+    # functions for CodeUp blog
+    
+def get_article_text():
+    """
+    Retrieve and return the text content of an article from Codeup's website.
+
+    If the article text is available locally, it is read from the 'article.txt' file.
+    If the article text is not available locally, it is fetched from the Codeup website and saved to 'article.txt' for future use.
+
+    Arguments: None
+    
+    Returns:
+        str: The text content of the article.
+    """
+
+    # if we already have the data, read it locally
+    if path.exists('article.txt'):
+        with open('article.txt') as f:
+            return f.read()
+
+    # otherwise go fetch the data
+    url = 'https://codeup.com/data-science/math-in-data-science/'
+    headers = {'User-Agent': 'Codeup Data Science'}
+    response = get(url, headers=headers)
+    soup = BeautifulSoup(response.text)
+    article = soup.find('div', id='main-content')
+
+    # save it for next time
+    with open('article.txt', 'w') as f:
+        f.write(article.text)
+
+    return article.text
+
+
 def get_blog_articles_data(refresh=False):
+    '''
+    This function looks for a local file 'blog_articles.csv'
+    unless the keyword argument 'refresh' is set to True. If 
+    the file is found, it is returned as a dataframe. If the 
+    file is not found or refresh is True, the function uses
+    beautiful soup 4 to scrape the blog articles from 
+    codeup.com/blogs and appends each article's content and 
+    title as a dictionary in a list of dicts. The final
+    list is written as 'blog_articles.csv' to the current
+    directory and returned as a dataframe of blog articles
+    and their titles.
+    
+    Arguments: Refresh=False or True to indicate if you 
+    would like any existing blog_articles.csv file to be
+    updated.
+    '''
     
     if not os.path.isfile('blog_articles.csv') or refresh:
         
@@ -44,6 +107,22 @@ def get_blog_articles_data(refresh=False):
 
 
 def get_news_articles_data(refresh=False):
+    '''
+    This function looks for a local file 'news_articles.csv'
+    unless the keyword argument 'refresh' is set to True. If 
+    the file is found, it is returned as a dataframe. If the 
+    file is not found or refresh is True, the function uses
+    beautiful soup 4 to scrape the news articles from 
+    'https://inshorts.com/en/read' and appends each 
+    article's content and title as a dictionary in a list of
+    dicts. The final list is written as 'news_articles.csv' 
+    to the current directory and returned as a dataframe of
+    articles and their titles.
+    
+    Arguments: Refresh=False or True to indicate if you 
+    would like any existing news_articles.csv file to be
+    updated.
+    '''
     
     if not os.path.isfile('news_articles.csv') or refresh:
         
